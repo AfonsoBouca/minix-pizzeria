@@ -1,0 +1,16 @@
+# Build products and debugging output
+*.o
+*.o-*
+*.a
+core.*
+trace.txt
+output.txt
+/project/proj
+/lab1/lab1
+/lab1/service/lab1
+
+# Local editor and environment files
+.gdbinit
+.vscode/
+minixline.txt
+desktop.ini

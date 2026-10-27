@@ -1,123 +1,95 @@
-# Papa's Pizzeria — GRUPO_2LEIC17_4
- 
-> A full remake of the classic **Papa's Pizzeria** game, written in **C** and running on **MINIX 3**, built on top of low-level hardware drivers developed across 5 lab modules.
- 
----
- 
+# Papa's Pizzeria
 
-## About the Project
- 
-This project is a **low-level systems programming remake** of the browser game *Papa's Pizzeria*, developed as the final project for the **Computer Laboratory (LCOM)** course. The entire game runs on **MINIX 3**, a microkernel-based operating system, and communicates directly with hardware through custom-built interrupt-driven drivers.
- 
-All game logic, rendering, input handling, and timing are implemented from scratch in **C**, relying solely on the drivers written throughout the lab assignments — no external game frameworks or high-level OS abstractions are used.
- 
----
+> A C remake of the classic Papa's Pizzeria game, running on MINIX 3 and
+> communicating directly with low-level hardware.
 
+## About
+
+This project is a low-level systems programming remake of the browser game
+*Papa's Pizzeria*. The game runs on MINIX 3 and uses custom interrupt-driven
+drivers for the timer, keyboard, mouse, real-time clock, and graphics
+hardware.
+
+Game logic, rendering, input handling, and timing are implemented in C without
+external game frameworks or high-level operating-system abstractions. The
+codebase follows a Model-View-Controller (MVC) structure:
+
+- `src/model/` contains the game state and gameplay rules.
+- `src/view/` contains rendering, sprites, and drawing utilities.
+- `src/game/` contains startup, event handling, and the main loop.
+- `include/` contains the public interfaces shared by these components.
 
 ## Features
- 
-- Full **graphical interface** rendered via direct VRAM access in video mode
-- Complete **mouse support** — navigate menus and interact with the game using cursor input
-- **Keyboard input** for navigation and shortcuts
-- Real-time **timer-based game loop** with consistent frame pacing
-- **RTC integration** to display the current date/time and track in-game sessions
-- Core **Papa's Pizzeria gameplay loop** — take orders, prepare pizzas, and serve customers
+
+- Graphical interface rendered through direct video-memory access
+- Mouse support for menus and gameplay
+- Keyboard navigation and shortcuts
+- Timer-driven game loop with consistent frame pacing
+- RTC integration for date and time information
+- Gameplay loop for taking orders, preparing pizzas, and serving customers
 - Main menu, options screen, and in-game HUD
 
----
+## Hardware Interfaces
 
-
-## Hardware Drivers & Libraries
- 
-This project integrates all five drivers developed throughout the lab assignments:
- 
-| Lab | Device | Description |
-|-----|--------|-------------|
-| **Lab 1** | **RTC** (Real-Time Clock) | Reads the current date and time; used for session timestamps and in-game clock |
-| **Lab 2** | **Timer** (i8254) | Generates periodic interrupts; drives the main game loop and frame rate control |
-| **Lab 3** | **KBC / Keyboard** (i8042) | Handles keyboard scancodes via interrupt; used for key-based navigation and shortcuts |
-| **Lab 4** | **Mouse** (PS/2 via KBC) | Reads mouse packets; controls the in-game cursor for all menu and gameplay interactions |
-| **Lab 5** | **Graphics** (Video Card) | Sets graphics video mode, maps VRAM, and renders all sprites, backgrounds, and UI elements |
- 
----
-
+| Interface | Device | Purpose |
+|-----------|--------|---------|
+| RTC | Real-time clock | Reads date and time information |
+| Timer | i8254 | Drives periodic interrupts and frame timing |
+| Keyboard | i8042 / KBC | Handles keyboard scan codes |
+| Mouse | PS/2 via KBC | Controls the in-game cursor |
+| Graphics | Video card | Sets video mode, maps VRAM, and renders the UI |
 
 ## Screenshots
- 
+
 ### Main Menu
 
-<img src="project/images/1.jpg" width="600" >
- 
+<img src="project/images/1.jpg" width="600">
+
 ### Options Screen
 
-<img src="project/images/2.jpg" width="600" >
- 
+<img src="project/images/2.jpg" width="600">
+
 ### Gameplay
 
-<img src="project/images/3.jpg" width="600" >
-<img src="project/images/4.jpg" width="600" >
-<img src="project/images/5.jpg" width="600" >
-<img src="project/images/6.jpg" width="600" >
-<img src="project/images/7.jpg" width="600" >
-<img src="project/images/8.jpg" width="600" >
-<img src="project/images/9.jpg" width="600" >
-<img src="project/images/10.jpg" width="600" >
-<img src="project/images/11.jpg" width="600" >
-<img src="project/images/12.jpg" width="600" >
-<img src="project/images/13.jpg" width="600" >
-<img src="project/images/14.jpg" width="600" >
-<img src="project/images/15.jpg" width="600" >
- 
----
- 
+<img src="project/images/3.jpg" width="600">
+<img src="project/images/4.jpg" width="600">
+<img src="project/images/5.jpg" width="600">
+<img src="project/images/6.jpg" width="600">
+<img src="project/images/7.jpg" width="600">
+<img src="project/images/8.jpg" width="600">
+<img src="project/images/9.jpg" width="600">
+<img src="project/images/10.jpg" width="600">
+<img src="project/images/11.jpg" width="600">
+<img src="project/images/12.jpg" width="600">
+<img src="project/images/13.jpg" width="600">
+<img src="project/images/14.jpg" width="600">
+<img src="project/images/15.jpg" width="600">
 
-## Build & Run
- 
+## Build and Run
 
- 
-### 1. Build the project
- 
+The project must be compiled and run inside a MINIX 3 environment because it
+accesses hardware I/O ports, interrupt vectors, and video memory directly.
+
 ```bash
 make
-```
- 
-### 2. Run on MINIX
- 
-```bash
 lcom_run proj
 ```
- 
-> The project must be compiled and executed inside the MINIX 3 environment. Running it outside MINIX will fail due to direct hardware access via I/O ports and interrupt vectors.
- 
-### 3. Clean build artifacts
- 
+
+To remove generated build files:
+
 ```bash
 make clean
 ```
- 
----
- 
 
+## Credits and License
 
-## Authors
- 
-Signed: `Afonso Bouça`, `Bruno Dias`, `Diogo Coelho`, `Guilherme Silva`  
-Date: `<date>`
+Created by:
 
-LCOM Project for group GRUPO_2LEIC17_4<p>.
+- Afonso Bouça
+- Bruno Dias
+- Diogo Coelho
+- Guilherme Silva
 
-Group members:
-
-Afonso Bouça (up202304970@up.pt)
-Bruno Dias (up202405613@up.pt)
-Diogo Coelho(up202406324@up.pt)
-Guilherme Silva (up202404270@up.pt)
-
----
- 
-## License
- 
-This project was developed for academic purposes. All game concept and original assets belong to their respective owners (Flipline Studios). This remake is a non-commercial educational project.
-
-
-
+This project is a non-commercial educational remake. The Papa's Pizzeria
+concept and original assets belong to their respective owners, Flipline
+Studios.

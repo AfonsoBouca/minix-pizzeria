@@ -2,7 +2,7 @@
 
 ## Introdução
 
-O projeto Papa's Pizzeria é um remake do jogo clássico, desenvolvido em C para o ambiente LCOM/Minix, no âmbito da unidade curricular de Laboratório de Computadores (LCOM). A aplicação segue uma arquitetura Model-View-Controller (MVC) e utiliza dispositivos de I/O como timer, teclado, rato, placa gráfica e RTC.
+O projeto Papa's Pizzeria é um remake do jogo clássico, desenvolvido em C para o ambiente Minix. A aplicação segue uma arquitetura Model-View-Controller (MVC) e utiliza dispositivos de I/O como timer, teclado, rato, placa gráfica e RTC.
 
 Durante o desenvolvimento, foi identificado um problema significativo de desempenho gráfico que comprometia a jogabilidade. Este documento descreve o problema, a análise realizada e a solução implementada.
 
@@ -10,11 +10,11 @@ Durante o desenvolvimento, foi identificado um problema significativo de desempe
 
 Ao executar o jogo no ambiente Minix, verificou-se que a aplicação apresentava um nível de lag extremamente elevado. O rato reagia com vários segundos de atraso, o relógio (RTC) praticamente não avançava entre frames e a interação com os menus era quase impossível. O jogo tornava-se, na prática, inutilizável.
 
-A causa não residia na lógica do jogo nem na gestão de interrupções, mas sim na camada de renderização gráfica — especificamente, nas funções da biblioteca gráfica desenvolvida no lab5.
+A causa não residia na lógica do jogo nem na gestão de interrupções, mas sim na camada de renderização gráfica — especificamente, nas funções da biblioteca gráfica existente.
 
 ## Análise da Solução Inicial
 
-A biblioteca gráfica do lab5 disponibiliza funções como `vg_draw_pixel`, `vg_draw_hline`, `vg_draw_rectangle`, `vg_draw_xpm`, `vg_clear_buffer` e `vg_swap_buffer`. Estas funções operam sobre um *hidden buffer* (double buffering), o que é conceptualmente correto. No entanto, a implementação interna destas funções apresentava ineficiências severas:
+A biblioteca gráfica existente disponibiliza funções como `vg_draw_pixel`, `vg_draw_hline`, `vg_draw_rectangle`, `vg_draw_xpm`, `vg_clear_buffer` e `vg_swap_buffer`. Estas funções operam sobre um *hidden buffer* (double buffering), o que é conceptualmente correto. No entanto, a implementação interna destas funções apresentava ineficiências severas:
 
 - **`vg_draw_pixel`**: Cada chamada realiza uma verificação de limites, calcula o offset no buffer e executa um `memcpy` de apenas 3 bytes (modo 24-bit). Embora individualmente rápida, o custo acumula-se quando invocada centenas de milhares de vezes por frame.
 
@@ -37,14 +37,14 @@ O total ultrapassava facilmente **1 milhão de chamadas a funções por frame**,
 
 ## Solução Implementada
 
-Uma vez que as bibliotecas dos labs não podem ser alteradas, foi criado um módulo independente composto por dois ficheiros:
+Para manter as bibliotecas existentes inalteradas, foi criado um módulo independente composto por dois ficheiros:
 
 - **`include/fast_draw.h`** — Interface pública com as declarações das funções.
 - **`src/view/fast_draw.c`** — Implementação das funções otimizadas.
 
 ### Princípios da Otimização
 
-A estratégia central consiste em **aceder diretamente ao frame buffer** sem passar pelas funções intermédias do lab5, eliminando o overhead de chamadas a funções e verificações de limites redundantes. As principais técnicas utilizadas são:
+A estratégia central consiste em **aceder diretamente ao frame buffer** sem passar pelas funções intermédias da biblioteca gráfica, eliminando o overhead de chamadas a funções e verificações de limites redundantes. As principais técnicas utilizadas são:
 
 1. **Mapeamento próprio da VRAM**: O módulo `fast_draw` mapeia a memória de vídeo de forma independente durante a inicialização (`fast_draw_init`), obtendo um ponteiro direto para a VRAM e alocando o seu próprio back-buffer.
 
@@ -70,7 +70,7 @@ A estratégia central consiste em **aceder diretamente ao frame buffer** sem pas
 
 A tabela seguinte resume a diferença no número de operações de memória por frame para cada tipo de operação, considerando a resolução 800×600 em modo 24-bit (3 bytes por pixel):
 
-| Operação | Lab5 (antes) | Fast Draw (depois) | Redução |
+| Operação | Implementação existente | Fast Draw (depois) | Redução |
 |----------|-------------|-------------------|---------|
 | Desenho de XPM (800×600) | 480.000 `memcpy` de 3 bytes | 600 `memcpy` de 2.400 bytes | ~800× menos chamadas |
 | Limpeza do ecrã | 480.000 `memcpy` de 3 bytes | 800 `memcpy` (1 linha) + 599 `memcpy` de 2.400 bytes | ~340× menos chamadas |
@@ -97,14 +97,14 @@ A solução implementada respeita integralmente a arquitetura MVC do projeto:
 
 - **Model** (`src/model/`): Não sofreu qualquer alteração. A lógica do jogo, gestão de pedidos e processamento de input permanecem inalterados.
 
-- **View** (`src/view/`): Os ficheiros de renderização (`draw.c`, `draw_utils.c`, `draw_elements.c`, `sprites.c`) foram atualizados para utilizar as funções `fast_*` em vez das funções `vg_*` do lab5. O módulo `fast_draw.c` foi adicionado a esta camada.
+- **View** (`src/view/`): Os ficheiros de renderização (`draw.c`, `draw_utils.c`, `draw_elements.c`, `sprites.c`) foram atualizados para utilizar as funções `fast_*` em vez das funções `vg_*`. O módulo `fast_draw.c` foi adicionado a esta camada.
 
 - **Game** (`src/game/`): Apenas `loop.c` foi alterado para invocar `fast_draw_init` na inicialização, após o setup da placa gráfica.
 
-- **Labs**: Nenhuma biblioteca de lab foi modificada. As funções do lab5 continuam disponíveis e a biblioteca `libgraphics.a` continua a ser linkada (necessária para `vg_exit`, `set_graphics_mode` e `map_video_memory`).
+- **Bibliotecas existentes**: Nenhuma biblioteca de suporte foi modificada. A biblioteca `libgraphics.a` continua a ser linkada, pois fornece `vg_exit`, `set_graphics_mode` e `map_video_memory`.
 
 O novo módulo funciona como uma camada de abstração adicional entre a view e o hardware gráfico, mantendo a separação de responsabilidades da arquitetura original.
 
 ## Conclusão
 
-A otimização gráfica realizada através do módulo Fast Draw demonstra como o acesso direto à memória de vídeo e a utilização de operações de memória por bloco podem produzir melhorias significativas de desempenho em sistemas com restrições de hardware como o Minix. A solução foi implementada de forma modular, sem alterar as bibliotecas existentes dos labs e respeitando a arquitetura MVC do projeto, resultando numa experiência de jogo funcional e responsiva.
+A otimização gráfica realizada através do módulo Fast Draw demonstra como o acesso direto à memória de vídeo e a utilização de operações de memória por bloco podem produzir melhorias significativas de desempenho em sistemas com restrições de hardware como o Minix. A solução foi implementada de forma modular, sem alterar as bibliotecas existentes e respeitando a arquitetura MVC do projeto, resultando numa experiência de jogo funcional e responsiva.
