@@ -29,6 +29,10 @@ codebase follows a Model-View-Controller (MVC) structure:
 - Gameplay loop for taking orders, preparing pizzas, and serving customers
 - Main menu, options screen, and in-game HUD
 
+## Play Online
+
+The published game is available at [Arcade.rgo.pt](https://arcade.rgo.pt/#game=guizas-la-papas-pizzeria-807f3b26e203).
+
 ## Hardware Interfaces
 
 | Interface | Device | Purpose |
